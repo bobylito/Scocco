@@ -1,0 +1,316 @@
+<html>
+                    <head>
+                      <link rel="stylesheet" href="resources/docco.css"></link>
+                      <link rel="stylesheet" href="resources/prettify.css"></link>
+                      <script type="text/javascript" src="resources/prettify.js"></script>
+                      <style>pre.prettyprint{border:none}</style>
+                    </head>
+                    <body onload="prettyPrint()">
+                      <table cellspacing="0" cellpadding="0">
+                        <tr><th class="docs"><h1>Scocco.scala</h1></th><th class="code"></th></tr>
+                        <tr id="0">
+      <td class="docs">
+          <div class="pilwrap"> <a class="pilcrow" href="#0">&para;</a></div>
+          <p> <strong>Scocco</strong> is a quick and dirty litterate programming tool for scala a la <a href="http://jashkenas.github.com/docco/">Docco</a></p>
+<p> It is a quick-and-dirty, hundred-line-long, literate-programming-style
+ documentation generator. It produces HTML
+ that displays your comments alongside your code. Comments are passed through a
+ <a href="http://daringfireball.net/projects/markdown/syntax">Markdown</a> parser
+ implemented by the <a href="https://github.com/chenkelmann/actuarius">Actuarius library</a>,
+ and code is passed through <a href="http://code.google.com/p/google-code-prettify/">Google prettify</a> syntax highlighting.
+ This page is the result of running Scocco against its own source file.</p>
+<p> Using SBT :</p>
+<pre><code> sbt &quot;run src/main/scala/Scocco.scala&quot;
+</code></pre>
+<p> ...will generate an HTML documentation page for the named source files,
+ saving it into a <code>docs</code> folder.</p>
+<p> The <a href="http://github.com/bobylito/scocco">source for Scocco</a> is available on GitHub,
+ and released under the MIT license.</p>
+<p> Scocco can be used to process Scala.
+ Only single-line comments are processed -- block comments are ignored.</p>
+<h3>Partners in Crime:</h3>
+<ul>
+<li><p>CoffeeScript (the original flavour) : <a href="https://github.com/jashkenas/">Jeremy Ashkenas</a>&apos;s
+ <a href="https://github.com/jashkenas/docco">Docco</a></p>
+</li>
+<li><p>Ruby : <a href="http://github.com/rtomayko">Ryan Tomayko</a>&apos;s
+ <a href="http://rtomayko.github.com/rocco/rocco.html">Rocco</a></p>
+</li>
+<li><p>POSIX Shell scripts : Mr. Tomayko&apos;s
+ <a href="http://rtomayko.github.com/shocco/">Shocco</a></p>
+</li>
+<li><p>Python : <a href="http://github.com/fitzgen">Nick Fitzgerald</a>&apos;s
+ <a href="http://fitzgen.github.com/pycco/">Pycco</a></p>
+</li>
+<li><p>Clojure : <a href="http://blog.fogus.me/">Fogus</a>&apos;s
+ <a href="http://fogus.me/fun/marginalia/">Marginalia</a></p>
+</li>
+<li><p>Lua :
+ <a href="https://github.com/rgieseke">Robert Gieseke</a>&apos;s <a href="http://rgieseke.github.com/locco/">Locco</a>.</p>
+</li>
+<li><p>.NET <a href="https://github.com/dontangg">Don Wilson</a>&apos;s
+ <a href="http://dontangg.github.com/nocco/">Nocco</a>.</p>
+</li>
+</ul>
+<h3>The boring paperwork...</h3>
+
+      </td>
+      <td class="code">
+          <div class="highlight">
+              <pre class="prettyprint"></pre>
+          </div>
+      </td>
+    </tr><tr id="1">
+      <td class="docs">
+          <div class="pilwrap"> <a class="pilcrow" href="#1">&para;</a></div>
+          <p>First some imports</p>
+
+      </td>
+      <td class="code">
+          <div class="highlight">
+              <pre class="prettyprint">import scala.collection.Set
+import java.io.File
+import scala.io.Source
+import java.io.PrintWriter
+import java.io.FileWriter
+import java.io.BufferedWriter
+import scala.util.parsing.combinator.RegexParsers
+</pre>
+          </div>
+      </td>
+    </tr><tr id="2">
+      <td class="docs">
+          <div class="pilwrap"> <a class="pilcrow" href="#2">&para;</a></div>
+          <h3>The subject</h3>
+
+      </td>
+      <td class="code">
+          <div class="highlight">
+              <pre class="prettyprint"></pre>
+          </div>
+      </td>
+    </tr><tr id="3">
+      <td class="docs">
+          <div class="pilwrap"> <a class="pilcrow" href="#3">&para;</a></div>
+          <p>Definition of the application. The whole application is contained in a single object.</p>
+
+      </td>
+      <td class="code">
+          <div class="highlight">
+              <pre class="prettyprint">object Scocco extends scala.App {
+  </pre>
+          </div>
+      </td>
+    </tr><tr id="4">
+      <td class="docs">
+          <div class="pilwrap"> <a class="pilcrow" href="#4">&para;</a></div>
+          <p>What is necessary for actually parsing the markdown code</p>
+
+      </td>
+      <td class="code">
+          <div class="highlight">
+              <pre class="prettyprint">  import eu.henkelmann.actuarius.ActuariusTransformer
+  val transformer = new ActuariusTransformer()
+  def markdownToHtmlSnippet(input:String):String = transformer(input)
+  </pre>
+          </div>
+      </td>
+    </tr><tr id="5">
+      <td class="docs">
+          <div class="pilwrap"> <a class="pilcrow" href="#5">&para;</a></div>
+          <p>This case class represents a part of code with its associated comments</p>
+
+      </td>
+      <td class="code">
+          <div class="highlight">
+              <pre class="prettyprint">  case class Section(comment: List[String], code: List[String], id : Int) {</pre>
+          </div>
+      </td>
+    </tr><tr id="6">
+      <td class="docs">
+          <div class="pilwrap"> <a class="pilcrow" href="#6">&para;</a></div>
+          <p>This function does not modify the current object</p>
+
+      </td>
+      <td class="code">
+          <div class="highlight">
+              <pre class="prettyprint">    def addSource(line: String): Section = {
+      if (isStringComment(line)) {
+        Section(line :: this.comment, this.code, this.id)
+      } else {
+        val n = line :: this.code
+        Section(this.comment, n, this.id)
+      }
+    }
+  }
+
+  def generateDocumentation = { filename: String =&gt;
+    val f = readFile(filename)
+    val sections = f.map({ file =&gt;
+      val sections = parse(file)
+      </pre>
+          </div>
+      </td>
+    </tr><tr id="7">
+      <td class="docs">
+          <div class="pilwrap"> <a class="pilcrow" href="#7">&para;</a></div>
+          <p> The use of <em>xml litterals</em> makes it very clean and simple
+ to have html templates in the code</p>
+
+      </td>
+      <td class="code">
+          <div class="highlight">
+              <pre class="prettyprint">      val txt = &lt;html&gt;
+                    &lt;head&gt;
+                      &lt;link rel=&quot;stylesheet&quot; href=&quot;resources/docco.css&quot;&gt;&lt;/link&gt;
+                      &lt;link rel=&quot;stylesheet&quot; href=&quot;resources/prettify.css&quot;&gt;&lt;/link&gt;
+                      &lt;script src=&quot;resources/prettify.js&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;
+                      &lt;style&gt;{&quot;pre.prettyprint{border:none}&quot;}&lt;/style&gt;
+                    &lt;/head&gt;
+                    &lt;body onload=&quot;prettyPrint()&quot; &gt;
+                      &lt;table  cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;
+                        &lt;tr&gt;&lt;th class=&quot;docs&quot;&gt;&lt;h1&gt;{ file.getName }&lt;/h1&gt;&lt;/th&gt;&lt;th class=&quot;code&quot;&gt;&lt;/th&gt;&lt;/tr&gt;
+                        { sections.reverse.map( x =&gt; template(x) ) }
+                      &lt;/table&gt;
+                    &lt;/body&gt;
+                &lt;/html&gt;
+      export(file.getName()).map({ outStream =&gt;
+        outStream.write(txt.toString())
+        outStream.close()
+      }).getOrElse({</pre>
+          </div>
+      </td>
+    </tr><tr id="8">
+      <td class="docs">
+          <div class="pilwrap"> <a class="pilcrow" href="#8">&para;</a></div>
+          <p>If the out file can&apos;t be write, output the standard out</p>
+
+      </td>
+      <td class="code">
+          <div class="highlight">
+              <pre class="prettyprint">          println(txt)
+      })
+    })
+    .getOrElse(sys.error(&quot;Impossible de lire le fichier : &quot; + filename))
+  }
+
+  def readFile = { filename: String =&gt;
+    val f = new File(filename)
+    if (f == null || !f.exists() || !f.canRead()) {
+      None
+    } else {
+      Some(f)
+    }
+  }
+  
+  def ifDoesntExistMakeIt(f : File) = {
+    if(!f.exists){
+      f.mkdir
+    }
+  }
+  
+  def copyResourceToOut(resourcesFolder:File, filename : String){
+    val file = this.getClass.getClassLoader.getResourceAsStream(filename)
+    org.apache.commons.io.FileUtils.copyInputStreamToFile(file, new File(resourcesFolder, filename))
+  }
+  
+  def export(filename : String) = {
+    val doc = new File(&quot;docs&quot;)
+    ifDoesntExistMakeIt(doc)
+    
+    val resourcesFolder = new File(doc, &quot;resources&quot;)
+    ifDoesntExistMakeIt(resourcesFolder)
+    
+    copyResourceToOut(resourcesFolder, &quot;docco.css&quot;)
+    copyResourceToOut(resourcesFolder, &quot;prettify.css&quot;)
+    copyResourceToOut(resourcesFolder, &quot;prettify.js&quot;)
+    
+    val docFileName = filename.replaceAll(&quot;\\..+$&quot;, &quot;.html&quot;)
+    val out = new File(doc, docFileName)
+    
+    if(!out.exists()){
+        out.createNewFile()
+    }
+    
+    Some(new BufferedWriter(new FileWriter(out)))
+  }
+  
+  def template(section:Section) = { 
+    &lt;tr id={section.id.toString()}&gt;
+      &lt;td class=&quot;docs&quot;&gt;
+          &lt;div class=&quot;pilwrap&quot;&gt; &lt;a class=&quot;pilcrow&quot; href={&quot;#&quot; + section.id.toString()} &gt;&amp;para;&lt;/a&gt;&lt;/div&gt;
+          { markdown(section.comment.reverse.map(clean).mkString(&quot;\n&quot;)) }
+      &lt;/td&gt;
+      &lt;td class=&quot;code&quot;&gt;
+          &lt;div class=&quot;highlight&quot;&gt;
+              &lt;pre class=&quot;prettyprint&quot;&gt;{ section.code.reverse.mkString(&quot;\n&quot;) }&lt;/pre&gt;
+          &lt;/div&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+  }
+
+  def clean(comment : String) = {
+    comment.trim().replaceAll(&quot;^//&quot;, &quot;&quot;)
+  }
+</pre>
+          </div>
+      </td>
+    </tr><tr id="9">
+      <td class="docs">
+          <div class="pilwrap"> <a class="pilcrow" href="#9">&para;</a></div>
+          <p> Because the lib uses xml litterals, strings containing html have to be marked as not to be parsed</p>
+
+      </td>
+      <td class="code">
+          <div class="highlight">
+              <pre class="prettyprint">  def markdown(comment : String) = {
+    scala.xml.Unparsed( markdownToHtmlSnippet( comment ))
+  }
+
+  def parse(file:File):List[Section] = {
+    val lines = Source.fromFile(file).getLines
+    lines.foldLeft(List[Section]())( {
+      (parsed: List[Section], line: String) =&gt; 
+          parsed match {
+            case Nil =&gt; {
+              val newLine = Section(Nil, Nil, 0)
+              newLine.addSource(line) :: Nil
+            }
+            case Section(comment, Nil, _) :: tail =&gt; {
+              parsed.head.addSource(line) :: tail
+            }
+            case Section(comment, code, id) :: tail =&gt; {
+              if (isStringComment(line)) {
+                val newLine = Section(line :: Nil, Nil, id+1)
+                newLine :: parsed
+              } else {
+                Section(comment, line :: code, id) :: tail
+              }
+            }
+
+          }
+      })
+  }
+
+  def isStringComment = { (s: String) =&gt;
+    s.matches(&quot;^[ ]*//.+&quot;)
+  }
+  </pre>
+          </div>
+      </td>
+    </tr><tr id="10">
+      <td class="docs">
+          <div class="pilwrap"> <a class="pilcrow" href="#10">&para;</a></div>
+          <p> Let&apos;s start the whole thing!!</p>
+
+      </td>
+      <td class="code">
+          <div class="highlight">
+              <pre class="prettyprint">  args.map(generateDocumentation)
+}</pre>
+          </div>
+      </td>
+    </tr>
+                      </table>
+                    </body>
+                </html>
